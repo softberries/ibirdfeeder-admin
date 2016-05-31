@@ -97,25 +97,29 @@ public class ViewerTabPageController implements Initializable {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getButton().equals(MouseButton.PRIMARY)) {
+                    S3Item s3Item = new S3Item(url.substring(url.lastIndexOf("/") + 1), url.replace("small_", ""), "2.2" + i, "READY");
                     if (event.getClickCount() == 2) {
                         System.out.println("Double clicked");
                         Stage stage = new Stage();
                         Parent root = null;
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/imageModal.fxml"));
                         try {
-                            root = FXMLLoader.load(getClass().getResource("/fxml/hello.fxml"));
+                            root = loader.load();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                        stage.setResizable(false);
+                        ImageModalController imageModalController = loader.getController();
+                        imageModalController.init(s3Item);
                         stage.setScene(new Scene(root));
-                        stage.setTitle("My modal window");
+                        stage.setTitle(s3Item.getName());
                         stage.initModality(Modality.WINDOW_MODAL);
                         stage.initOwner(
-                            ((Node)event.getSource()).getScene().getWindow() );
+                            ((Node) event.getSource()).getScene().getWindow());
                         stage.show();
                     } else {
                         System.out.println("Tile pressed " + url);
                         imageView.setSelected(!imageView.isSelected());
-                        S3Item s3Item = new S3Item(url.substring(url.lastIndexOf("/") + 1), "2.2" + i, "READY");
                         if (imageView.isSelected()) {
                             imageView.setEffect(new DropShadow(20, Color.BLUE));
                             selectedItems.add(s3Item);

@@ -7,9 +7,11 @@ public class S3Item {
     private final SimpleStringProperty name;
     private final SimpleStringProperty size;
     private final SimpleStringProperty status;
+    private final String url;
 
-    public S3Item(String name, String size, String status) {
+    public S3Item(String name, String url, String size, String status) {
         this.name = new SimpleStringProperty(name);
+        this.url = url;
         this.size = new SimpleStringProperty(size);
         this.status = new SimpleStringProperty(status);
     }
@@ -20,6 +22,10 @@ public class S3Item {
 
     public SimpleStringProperty statusProperty() {
         return status;
+    }
+
+    public String getUrl() {
+        return url;
     }
 
     public void setStatus(String status) {
@@ -59,7 +65,8 @@ public class S3Item {
 
         if (!getName().equals(s3Item.getName())) return false;
         if (!getSize().equals(s3Item.getSize())) return false;
-        return getStatus().equals(s3Item.getStatus());
+        if (!getStatus().equals(s3Item.getStatus())) return false;
+        return getUrl().equals(s3Item.getUrl());
 
     }
 
@@ -68,6 +75,7 @@ public class S3Item {
         int result = getName().hashCode();
         result = 31 * result + getSize().hashCode();
         result = 31 * result + getStatus().hashCode();
+        result = 31 * result + getUrl().hashCode();
         return result;
     }
 
@@ -77,6 +85,7 @@ public class S3Item {
             "name=" + name +
             ", size=" + size +
             ", status=" + status +
+            ", url='" + url + '\'' +
             '}';
     }
 }
