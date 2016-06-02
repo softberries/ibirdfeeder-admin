@@ -29,6 +29,9 @@ public class MainController {
     @FXML
     private ViewerTabPageController viewerTabPageController;
 
+    @FXML
+    private MainTabPageController mainTabPageController;
+
 //    @FXML
 //    private FlowPane mainGrid;
 //
@@ -45,6 +48,7 @@ public class MainController {
 
     public void init() throws MalformedURLException {
         log.debug("init method called");
+        mainTabPageController.init();
         viewerTabPageController.init();
 
 //        console = new Console(logTextArea);

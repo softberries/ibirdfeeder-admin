@@ -56,7 +56,7 @@
                                        <children>
                                           <TableView fx:id="itemsTable" prefHeight="333.0" prefWidth="1141.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                             <columns>
-                                              <TableColumn fx:id="nameColumn" prefWidth="200.0" text="Name" />
+                                              <TableColumn fx:id="nameColumn" prefWidth="400.0" text="Name" />
                                               <TableColumn fx:id="sizeColumn" prefWidth="75.0" text="Size" />
                                                 <TableColumn fx:id="statusColumn" editable="false" text="Status" />
                                             </columns>
