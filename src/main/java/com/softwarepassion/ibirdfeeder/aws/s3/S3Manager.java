@@ -17,32 +17,42 @@ public class S3Manager {
     private static final Logger log = LoggerFactory.getLogger(S3Manager.class);
 
     private static final String S3_BASE_URL = "https://s3-eu-west-1.amazonaws.com/birdfeeder001/";
-    private static final String BIRD_FEEDER_BUCKET_NAME = "birdfeeder001";
-    private static final int MAX_SINGLE_LOAD_SIZE = 1000;
+    private static final String BIRD_FEEDER_TEMP_BUCKET_NAME = "birdfeeder001";
+    private static final String BIRD_FEEDER_ALBUM_BUCKET_NAME = "birdfeederAlbum001";
     private final AmazonS3 s3;
 
     public S3Manager() {
         s3 = new AmazonS3Client(new ClasspathPropertiesFileCredentialsProvider("AWSCredentials.properties"));
     }
 
-    public List<String> listBucketContent() {
+    public List<S3File> listTempBucketContent() {
+        return listBucketContent(BIRD_FEEDER_TEMP_BUCKET_NAME);
+    }
 
-        ObjectListing listing = s3.listObjects(BIRD_FEEDER_BUCKET_NAME, "small");
+    public List<S3File> listAlbumBucketContent() {
+        return listBucketContent(BIRD_FEEDER_ALBUM_BUCKET_NAME);
+    }
+
+    public List<S3File> listBucketContent(String buckeName) {
+
+        ObjectListing listing = s3.listObjects(buckeName, "small");
         List<S3ObjectSummary> summaries = listing.getObjectSummaries();
-        List<String> urls = new ArrayList<>();
-//        while (listing.isTruncated()) {
-//            listing = s3.listNextBatchOfObjects(listing);
-//            summaries.addAll(listing.getObjectSummaries());
-//            if(summaries.size() >= MAX_SINGLE_LOAD_SIZE){
-//                break;
-//            }
-//        }
+        List<S3File> s3Files = new ArrayList<>();
+        while (listing.isTruncated()) {
+            listing = s3.listNextBatchOfObjects(listing);
+            summaries.addAll(listing.getObjectSummaries());
+        }
         for (S3ObjectSummary objectSummary : summaries) {
             if (objectSummary.getKey().startsWith("small_image_")) {
-                urls.add(S3_BASE_URL + objectSummary.getKey());
+                S3File s3File = new S3File(objectSummary.getKey(),
+                    S3_BASE_URL + objectSummary.getKey(),
+                    S3_BASE_URL + objectSummary.getKey().replace("small", "medium"),
+                    S3_BASE_URL + objectSummary.getKey().replace("small_", ""),
+                    objectSummary.getSize());
+                s3Files.add(s3File);
             }
         }
-        log.info("Found " + urls.size() + " files.");
-        return urls;
+        log.info("Found " + s3Files.size() + " files.");
+        return s3Files;
     }
 }

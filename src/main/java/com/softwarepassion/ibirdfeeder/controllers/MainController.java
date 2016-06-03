@@ -1,6 +1,7 @@
 package com.softwarepassion.ibirdfeeder.controllers;
 
 import com.softwarepassion.ibirdfeeder.Console;
+import com.softwarepassion.ibirdfeeder.aws.s3.S3File;
 import com.softwarepassion.ibirdfeeder.aws.s3.S3Manager;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -124,11 +125,11 @@ public class MainController {
     }
 
     private void loadImages() {
-        List<String> urls = new S3Manager().listBucketContent();
-        for (String urlStr : urls) {
-            allImages.add(urlStr.substring(urlStr.lastIndexOf("/") + 1));
+//        List<S3File> urls = new S3Manager().listBucketContent();
+//        for (S3File urlStr : urls) {
+//            allImages.add(urlStr.substring(urlStr.lastIndexOf("/") + 1));
 //            mainGrid.getChildren().add(createImageFromUrl(urlStr));
-        }
+//        }
     }
 
     private Parent createImageFromUrl(String url) {
