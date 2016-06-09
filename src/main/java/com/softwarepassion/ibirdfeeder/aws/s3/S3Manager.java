@@ -4,6 +4,9 @@ package com.softwarepassion.ibirdfeeder.aws.s3;
 import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.CopyObjectRequest;
+import com.amazonaws.services.s3.model.CopyObjectResult;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.slf4j.Logger;
@@ -18,7 +21,7 @@ public class S3Manager {
 
     private static final String S3_BASE_URL = "https://s3-eu-west-1.amazonaws.com/birdfeeder001/";
     private static final String BIRD_FEEDER_TEMP_BUCKET_NAME = "birdfeeder001";
-    private static final String BIRD_FEEDER_ALBUM_BUCKET_NAME = "birdfeederAlbum001";
+    private static final String BIRD_FEEDER_ALBUM_BUCKET_NAME = "birdfeederalbum001";
     private final AmazonS3 s3;
 
     public S3Manager() {
@@ -33,9 +36,9 @@ public class S3Manager {
         return listBucketContent(BIRD_FEEDER_ALBUM_BUCKET_NAME);
     }
 
-    public List<S3File> listBucketContent(String buckeName) {
+    private List<S3File> listBucketContent(String buckeName) {
 
-        ObjectListing listing = s3.listObjects(buckeName, "small");
+        ObjectListing listing = s3.listObjects(buckeName);
         List<S3ObjectSummary> summaries = listing.getObjectSummaries();
         List<S3File> s3Files = new ArrayList<>();
         while (listing.isTruncated()) {
@@ -43,16 +46,37 @@ public class S3Manager {
             summaries.addAll(listing.getObjectSummaries());
         }
         for (S3ObjectSummary objectSummary : summaries) {
-            if (objectSummary.getKey().startsWith("small_image_")) {
+            if (objectSummary.getKey().startsWith("image_")) {
                 S3File s3File = new S3File(objectSummary.getKey(),
+                    S3_BASE_URL + objectSummary.getKey().replace("image_", "small_image_"),
+                    S3_BASE_URL + objectSummary.getKey().replace("image_", "medium_image_"),
                     S3_BASE_URL + objectSummary.getKey(),
-                    S3_BASE_URL + objectSummary.getKey().replace("small", "medium"),
-                    S3_BASE_URL + objectSummary.getKey().replace("small_", ""),
                     objectSummary.getSize());
                 s3Files.add(s3File);
             }
         }
         log.info("Found " + s3Files.size() + " files.");
         return s3Files;
+    }
+
+    public void copyFileToAlbum(String fileName) {
+        log.info("copying file: " + fileName);
+        CopyObjectResult copyObjectResult1 = s3.copyObject(new CopyObjectRequest(BIRD_FEEDER_TEMP_BUCKET_NAME, fileName,
+            BIRD_FEEDER_ALBUM_BUCKET_NAME, fileName));
+        log.info("copied: " + fileName);
+        log.info("copying file: small_" + fileName);
+        CopyObjectResult copyObjectResult2 = s3.copyObject(new CopyObjectRequest(BIRD_FEEDER_TEMP_BUCKET_NAME, "small_" + fileName,
+            BIRD_FEEDER_ALBUM_BUCKET_NAME, "small_" + fileName));
+        log.info("copied: small_" + fileName);
+        log.info("copying file: medium_" + fileName);
+        CopyObjectResult copyObjectResult3 = s3.copyObject(new CopyObjectRequest(BIRD_FEEDER_TEMP_BUCKET_NAME, "medium_" + fileName,
+            BIRD_FEEDER_ALBUM_BUCKET_NAME, "medium_" + fileName));
+        log.info("copied: medium_" + fileName);
+    }
+
+    public void deleteFileFromTemp(String fileName) {
+        s3.deleteObject(new DeleteObjectRequest(BIRD_FEEDER_TEMP_BUCKET_NAME, fileName));
+        s3.deleteObject(new DeleteObjectRequest(BIRD_FEEDER_TEMP_BUCKET_NAME, "small_" + fileName));
+        s3.deleteObject(new DeleteObjectRequest(BIRD_FEEDER_TEMP_BUCKET_NAME, "medium_" + fileName));
     }
 }

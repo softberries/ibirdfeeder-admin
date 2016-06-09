@@ -1,17 +1,24 @@
 package com.softwarepassion.ibirdfeeder.controllers;
 
 
+import com.softwarepassion.ibirdfeeder.aws.s3.S3File;
+import com.softwarepassion.ibirdfeeder.aws.s3.S3Manager;
 import com.softwarepassion.ibirdfeeder.images.S3ImageView;
 import com.softwarepassion.ibirdfeeder.tables.S3Item;
+import com.softwarepassion.ibirdfeeder.tables.S3ItemStatus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToolBar;
@@ -29,36 +36,101 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ViewerTabPageController implements Initializable {
 
     private static final Logger log = LoggerFactory.getLogger(ViewerTabPageController.class);
 
+    private static final int MAX_NUMBER_OF_IMAGES_TO_LOAD = 1000;
+
     @FXML
-    public TableView itemsTable;
+    private TableView itemsTable;
     @FXML
-    public FlowPane mainGrid;
+    private FlowPane mainGrid;
     @FXML
-    public TableColumn nameColumn;
+    private TableColumn nameColumn;
     @FXML
-    public TableColumn sizeColumn;
+    private TableColumn sizeColumn;
     @FXML
-    public TableColumn statusColumn;
+    private TableColumn statusColumn;
     @FXML
-    public ToolBar toolbar;
+    private ToolBar toolbar;
+    @FXML
+    private ProgressIndicator copyProgressBar;
+    @FXML
+    private ProgressIndicator cleanProgressBar;
 
     private ObservableList<S3Item> selectedItems = FXCollections.observableArrayList();
+    private List<S3File> currentItems = new ArrayList<>();
+    private S3Manager s3Manager = new S3Manager();
 
     public void refreshAction(ActionEvent actionEvent) {
         log.info("refreshAction");
+        populateMainGrid();
     }
 
     public void cleanUpAction(ActionEvent actionEvent) {
         log.info("cleanUpAction");
+        Task task = new Task<Void>() {
+            @Override
+            public Void call() {
+                final int max = currentItems.size();
+                for (int i = 0; i < max; i++) {
+                    if (isCancelled()) {
+                        break;
+                    }
+                    log.info("{} marked to delete", currentItems.get(i));
+                    s3Manager.deleteFileFromTemp(currentItems.get(i).getName());
+                    updateProgress(i, max);
+                }
+                return null;
+            }
+        };
+        cleanProgressBar.setVisible(true);
+        cleanProgressBar.progressProperty().bind(task.progressProperty());
+        task.setOnSucceeded(new EventHandler<Event>() {
+            @Override
+            public void handle(Event event) {
+                cleanProgressBar.setVisible(false);
+                currentItems.clear();
+                selectedItems.clear();
+            }
+        });
+        new Thread(task).start();
     }
 
     public void sendToS3Action(ActionEvent actionEvent) {
         log.info("sendToS3Action");
+        log.info("Currently displaying {} files.", currentItems.size());
+        log.info("Selected to copy: {}", selectedItems.size());
+        log.info("Removing:");
+        Task task = new Task<Void>() {
+            @Override
+            public Void call() {
+                final int max = selectedItems.size();
+                for (int i = 0; i < max; i++) {
+                    if (isCancelled()) {
+                        break;
+                    }
+                    log.info("{} marked to copy", selectedItems.get(i));
+                    s3Manager.copyFileToAlbum(selectedItems.get(i).getName());
+                    selectedItems.get(i).setStatus(S3ItemStatus.PROCESSED.name());
+                    updateProgress(i, max);
+                }
+                return null;
+            }
+        };
+        copyProgressBar.setVisible(true);
+        copyProgressBar.progressProperty().bind(task.progressProperty());
+        task.setOnSucceeded(new EventHandler<Event>() {
+            @Override
+            public void handle(Event event) {
+                copyProgressBar.setVisible(false);
+            }
+        });
+        new Thread(task).start();
     }
 
 
@@ -77,15 +149,24 @@ public class ViewerTabPageController implements Initializable {
             new PropertyValueFactory<S3Item, String>("Status")
         );
         itemsTable.setItems(selectedItems);
+        populateMainGrid();
+    }
 
-        for (int i = 0; i < 200; i++) {
-            mainGrid.getChildren().add(createImageView("https://s3-eu-west-1.amazonaws.com/birdfeeder001/small_image_20160523-042030.jpg", i));
+    private void populateMainGrid() {
+        currentItems.clear();
+        selectedItems.clear();
+        mainGrid.getChildren().clear();
+        List<S3File> allFiles = s3Manager.listTempBucketContent();
+        List<S3File> files = s3Manager.listTempBucketContent().subList(0, allFiles.size() > MAX_NUMBER_OF_IMAGES_TO_LOAD ? MAX_NUMBER_OF_IMAGES_TO_LOAD : allFiles.size());
+        for (S3File f : files) {
+            mainGrid.getChildren().add(createImageView(f));
+            currentItems.add(f);
         }
     }
 
-    private Parent createImageView(String url, int i) {
+    private Parent createImageView(S3File file) {
         S3ImageView imageView = new S3ImageView();
-        Image image = new Image(url, true);
+        Image image = new Image(file.getSmallImgUrl(), true);
         Pane pane = new Pane(imageView);
         pane.setMaxWidth(142);
         imageView.fitWidthProperty().bind(pane.widthProperty());
@@ -97,7 +178,7 @@ public class ViewerTabPageController implements Initializable {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getButton().equals(MouseButton.PRIMARY)) {
-                    S3Item s3Item = new S3Item(url.substring(url.lastIndexOf("/") + 1), url.replace("small_", ""), "2.2" + i, "READY");
+                    S3Item s3Item = new S3Item(file.getName(), file.getSmallImgUrl(), file.readableFileSize(), S3ItemStatus.READY.name());
                     if (event.getClickCount() == 2) {
                         System.out.println("Double clicked");
                         Stage stage = new Stage();
@@ -118,7 +199,7 @@ public class ViewerTabPageController implements Initializable {
                             ((Node) event.getSource()).getScene().getWindow());
                         stage.show();
                     } else {
-                        System.out.println("Tile pressed " + url);
+                        System.out.println("Tile pressed " + file.getName());
                         imageView.setSelected(!imageView.isSelected());
                         if (imageView.isSelected()) {
                             imageView.setEffect(new DropShadow(20, Color.BLUE));
@@ -132,10 +213,7 @@ public class ViewerTabPageController implements Initializable {
                 }
             }
         });
-
         imageView.setImage(image);
-
-
         return pane;
     }
 }
