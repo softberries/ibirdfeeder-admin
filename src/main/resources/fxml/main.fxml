@@ -7,22 +7,22 @@
 <TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="708.0" prefWidth="984.0" side="LEFT" tabClosingPolicy="UNAVAILABLE"
          xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="com.softwarepassion.ibirdfeeder.controllers.MainController" >
     <tabs>
-        <Tab text="Main">
+        <Tab text="Main" onSelectionChanged="#onMainTabSelectionChanged">
             <content>
                 <fx:include fx:id="mainTabPage" source="/fxml/mainTabPage.fxml"/>
             </content>
         </Tab>
-        <Tab text="Viewer">
+        <Tab text="Viewer" onSelectionChanged="#onViewerTabSelectionChanged">
             <content>
                 <fx:include fx:id="viewerTabPage" source="/fxml/viewerTabPage.fxml"/>
             </content>
         </Tab>
-        <Tab text="Temperature">
+        <Tab text="Temperature" onSelectionChanged="#onTemperatureTabSelectionChanged">
             <content>
                 <fx:include fx:id="temperatureTabPage" source="/fxml/temperatureTabPage.fxml"/>
             </content>
         </Tab>
-        <Tab text="Album">
+        <Tab text="Album" onSelectionChanged="#onAlbumTabSelectionChanged">
             <content>
                 <fx:include fx:id="albumTabPage" source="/fxml/albumTabPage.fxml"/>
             </content>

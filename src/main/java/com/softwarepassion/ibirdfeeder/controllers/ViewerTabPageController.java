@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ViewerTabPageController implements Initializable {
 
@@ -156,7 +157,7 @@ public class ViewerTabPageController implements Initializable {
         currentItems.clear();
         selectedItems.clear();
         mainGrid.getChildren().clear();
-        List<S3File> allFiles = s3Manager.listTempBucketContent();//.stream().filter(f -> f.getName().startsWith("image")).collect(Collectors.toList());
+        List<S3File> allFiles = s3Manager.listTempBucketContent().stream().filter(f -> f.getName().startsWith("image")).collect(Collectors.toList());
         List<S3File> files = allFiles.subList(0, allFiles.size() > MAX_NUMBER_OF_IMAGES_TO_LOAD ? MAX_NUMBER_OF_IMAGES_TO_LOAD : allFiles.size());
         for (S3File f : files) {
             mainGrid.getChildren().add(createImageView(f));
