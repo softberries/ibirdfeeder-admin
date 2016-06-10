@@ -1,71 +1,103 @@
 package com.softwarepassion.ibirdfeeder.controllers;
 
 
+import com.softwarepassion.ibirdfeeder.aws.dynamodb.DynamoDbManager;
+import com.softwarepassion.ibirdfeeder.aws.dynamodb.TemperatureItem;
+import com.softwarepassion.ibirdfeeder.aws.s3.S3File;
+import com.softwarepassion.ibirdfeeder.aws.s3.S3Manager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Label;
+
+import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainTabPageController {
 
     @FXML
-    private AreaChart temperatureChart;
+    public Label tempSizeLbl;
+    @FXML
+    public Label websiteSizeLbl;
+    @FXML
+    public Label albumSizeLbl;
+    @FXML
+    public Label totalSizeLbl;
+
+    @FXML
+    private AreaChart dayTemperatureChart;
+
+    @FXML
+    private AreaChart monthTemperatureChart;
 
     @FXML
     private PieChart pieChart1;
 
-    @FXML
-    private PieChart pieChart2;
+    private DynamoDbManager dynamoDbManager;
+    private S3Manager s3manager;
 
     public void init() {
+        dynamoDbManager = new DynamoDbManager();
+        s3manager = new S3Manager();
         initTemperatureChart();
-        initChartsSection();
+        initStorageSection();
     }
 
-    private void initChartsSection() {
+    private void initStorageSection() {
+        List<S3File> tempFiles = s3manager.listTempBucketContent();
+        List<S3File> albumFiles = s3manager.listAlbumBucketContent();
+        List<S3File> websiteFiles = s3manager.listWebsiteBucketContent();
+        long tempSize = tempFiles.stream().mapToLong(S3File::getSize).sum();
+        long albumSize = albumFiles.stream().mapToLong(S3File::getSize).sum();
+        long websiteSize = websiteFiles.stream().mapToLong(S3File::getSize).sum();
+        long totalSize = tempSize + albumSize + websiteSize;
+        totalSizeLbl.setText(readableFileSize(totalSize));
+        tempSizeLbl.setText(readableFileSize(tempSize));
+        albumSizeLbl.setText(readableFileSize(albumSize));
+        websiteSizeLbl.setText(readableFileSize(websiteSize));
+        initChartsSection(100 * (float) tempSize / (float) totalSize,
+            100 * (float) albumSize / (float) totalSize,
+            100 * (float) websiteSize / (float) totalSize);
+    }
+
+    public String readableFileSize(long size) {
+        if (size <= 0) return "0";
+        final String[] units = new String[]{"B", "kB", "MB", "GB", "TB"};
+        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
+        return new DecimalFormat("#,##0.##").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
+    }
+
+    private void initChartsSection(float temp, float album, float website) {
         ObservableList<PieChart.Data> pieChartData =
             FXCollections.observableArrayList(
-                new PieChart.Data("Uprocessed", 77),
-                new PieChart.Data("Album", 21),
-                new PieChart.Data("Website", 2));
+                new PieChart.Data("Uprocessed", temp),
+                new PieChart.Data("Album", album),
+                new PieChart.Data("Website", website));
         pieChart1.setTitle("S3 Storage");
         pieChart1.setData(pieChartData);
     }
 
     private void initTemperatureChart() {
-        temperatureChart.setTitle("Temperature Monitoring (in Degrees C)");
+        XYChart.Series seriesDay = new XYChart.Series();
+        seriesDay.setName("Today");
+        List<TemperatureItem> items = dynamoDbManager.getCurrentDayTemperatureItems();
+        for (TemperatureItem item : items) {
+            seriesDay.getData().add(new XYChart.Data(Double.parseDouble(item.getHour() + "." + item.getMinute()), item.getTemperature()));
+        }
+        dayTemperatureChart.getData().add(seriesDay);
 
-        XYChart.Series seriesApril = new XYChart.Series();
-        seriesApril.setName("April");
-        seriesApril.getData().add(new XYChart.Data(1, 4));
-        seriesApril.getData().add(new XYChart.Data(3, 10));
-        seriesApril.getData().add(new XYChart.Data(6, 15));
-        seriesApril.getData().add(new XYChart.Data(9, 8));
-        seriesApril.getData().add(new XYChart.Data(12, 5));
-        seriesApril.getData().add(new XYChart.Data(15, 18));
-        seriesApril.getData().add(new XYChart.Data(18, 15));
-        seriesApril.getData().add(new XYChart.Data(21, 13));
-        seriesApril.getData().add(new XYChart.Data(24, 19));
-        seriesApril.getData().add(new XYChart.Data(27, 21));
-        seriesApril.getData().add(new XYChart.Data(30, 21));
-
-        XYChart.Series seriesMay = new XYChart.Series();
-        seriesMay.setName("May");
-        seriesMay.getData().add(new XYChart.Data(1, 20));
-        seriesMay.getData().add(new XYChart.Data(3, 15));
-        seriesMay.getData().add(new XYChart.Data(6, 13));
-        seriesMay.getData().add(new XYChart.Data(9, 12));
-        seriesMay.getData().add(new XYChart.Data(12, 14));
-        seriesMay.getData().add(new XYChart.Data(15, 18));
-        seriesMay.getData().add(new XYChart.Data(18, 25));
-        seriesMay.getData().add(new XYChart.Data(21, 25));
-        seriesMay.getData().add(new XYChart.Data(24, 23));
-        seriesMay.getData().add(new XYChart.Data(27, 26));
-        seriesMay.getData().add(new XYChart.Data(31, 26));
-
-        temperatureChart.getData().addAll(seriesApril, seriesMay);
+        XYChart.Series seriesMonth = new XYChart.Series();
+        seriesMonth.setName("Current Month");
+        List<TemperatureItem> itemsMonth = dynamoDbManager.getCurrentMonthTemperatureItems();
+        for (TemperatureItem item : itemsMonth) {
+            seriesMonth.getData().add(new XYChart.Data(item.getDay(), item.getTemperature()));
+        }
+        monthTemperatureChart.getData().add(seriesMonth);
     }
 
 

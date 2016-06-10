@@ -156,8 +156,8 @@ public class ViewerTabPageController implements Initializable {
         currentItems.clear();
         selectedItems.clear();
         mainGrid.getChildren().clear();
-        List<S3File> allFiles = s3Manager.listTempBucketContent();
-        List<S3File> files = s3Manager.listTempBucketContent().subList(0, allFiles.size() > MAX_NUMBER_OF_IMAGES_TO_LOAD ? MAX_NUMBER_OF_IMAGES_TO_LOAD : allFiles.size());
+        List<S3File> allFiles = s3Manager.listTempBucketContent();//.stream().filter(f -> f.getName().startsWith("image")).collect(Collectors.toList());
+        List<S3File> files = allFiles.subList(0, allFiles.size() > MAX_NUMBER_OF_IMAGES_TO_LOAD ? MAX_NUMBER_OF_IMAGES_TO_LOAD : allFiles.size());
         for (S3File f : files) {
             mainGrid.getChildren().add(createImageView(f));
             currentItems.add(f);

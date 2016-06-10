@@ -32,18 +32,30 @@
          <top>
             <VBox prefHeight="466.0" prefWidth="1160.0" BorderPane.alignment="CENTER">
                <children>
-                  <TitledPane animated="false" collapsible="false" prefHeight="271.0" prefWidth="1422.0" text="Temperature - Last 24 hrs">
+                  <TitledPane animated="false" collapsible="false" prefHeight="271.0" prefWidth="1422.0" text="Temperature">
                     <content>
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                            <children>
-                              <AreaChart fx:id="temperatureChart" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                <xAxis>
-                                  <NumberAxis lowerBound="1" side="BOTTOM" tickUnit="1" upperBound="31" />
-                                </xAxis>
-                                <yAxis>
-                                  <NumberAxis side="LEFT" />
-                                </yAxis>
-                              </AreaChart>
+                              <HBox layoutX="428.0" layoutY="61.0" prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <children>
+                                    <AreaChart fx:id="dayTemperatureChart" title="Temperature Today" HBox.hgrow="ALWAYS">
+                                      <xAxis>
+                                          <NumberAxis lowerBound="1" side="BOTTOM" tickUnit="1" upperBound="50" />
+                                      </xAxis>
+                                      <yAxis>
+                                        <NumberAxis side="LEFT" />
+                                      </yAxis>
+                                    </AreaChart>
+                                    <AreaChart fx:id="monthTemperatureChart" title="Avg. Temperature - Current Month" HBox.hgrow="ALWAYS">
+                                      <xAxis>
+                                          <NumberAxis lowerBound="1" side="BOTTOM" tickUnit="1" upperBound="50" />
+                                      </xAxis>
+                                      <yAxis>
+                                        <NumberAxis side="LEFT" />
+                                      </yAxis>
+                                    </AreaChart>
+                                 </children>
+                              </HBox>
                            </children>
                         </AnchorPane>
                     </content>
@@ -60,37 +72,48 @@
                                              <children>
                                                 <Label layoutX="14.0" layoutY="14.0" text="Total S3 Size:">
                                                    <font>
-                                                      <Font size="19.0" />
+                                                      <Font size="27.0" />
                                                    </font>
                                                 </Label>
-                                                <Label layoutX="149.0" layoutY="14.0" text="3.3 GB">
+                                                <Label fx:id="totalSizeLbl" layoutX="200.0" layoutY="14.0" text="3.3 GB">
                                                    <font>
-                                                      <Font size="19.0" />
+                                                      <Font size="27.0" />
                                                    </font>
                                                 </Label>
-                                                <Label layoutX="36.0" layoutY="38.0" text="S3 Temporary files:">
-                                                   <font>
-                                                      <Font size="11.0" />
-                                                   </font>
-                                                </Label>
-                                                <Label layoutX="57.0" layoutY="52.0" text="S3 Album Files:">
+                                                <Label layoutX="88.0" layoutY="53.0" text="S3 Temporary files:">
                                                    <font>
                                                       <Font size="11.0" />
                                                    </font>
                                                 </Label>
-                                                <Label layoutX="148.0" layoutY="39.0" text="2.2 GB">
+                                                <Label layoutX="109.0" layoutY="69.0" text="S3 Album Files:">
+                                                   <font>
+                                                      <Font size="11.0" />
+                                                   </font>
+                                                </Label>
+                                                <Label fx:id="tempSizeLbl" layoutX="200.0" layoutY="53.0" text="2.2 GB">
                                                    <font>
                                                       <Font name="System Bold" size="10.0" />
                                                    </font>
                                                 </Label>
-                                                <Label layoutX="150.0" layoutY="53.0" text="1.1 GB">
+                                                <Label fx:id="websiteSizeLbl" layoutX="201.0" layoutY="84.0" text="1.1 GB">
                                                    <font>
                                                       <Font name="System Bold" size="10.0" />
+                                                   </font>
+                                                </Label>
+                                                <Label fx:id="albumSizeLbl" layoutX="201.0" layoutY="69.0" text="1.1 GB">
+                                                   <font>
+                                                      <Font name="System Bold" size="10.0" />
+                                                   </font>
+                                                </Label>
+                                                <Label layoutX="144.0" layoutY="84.0" text="Website:">
+                                                   <font>
+                                                      <Font size="11.0" />
                                                    </font>
                                                 </Label>
                                              </children>
                                           </Pane>
-                                          <BarChart fx:id="barChart">
+                                          <PieChart fx:id="pieChart1" maxHeight="500.0" />
+                                          <BarChart fx:id="barChart" HBox.hgrow="ALWAYS">
                                             <xAxis>
                                               <CategoryAxis side="BOTTOM" />
                                             </xAxis>
@@ -98,7 +121,6 @@
                                               <NumberAxis side="LEFT" />
                                             </yAxis>
                                           </BarChart>
-                                          <PieChart fx:id="pieChart1" maxHeight="500.0" />
                                        </children>
                                     </HBox>
                                  </children>

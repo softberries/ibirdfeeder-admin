@@ -14,11 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -58,7 +56,8 @@ public class DynamoDbManager {
         ComparatorChain chain = new ComparatorChain(Arrays.asList(
             new BeanComparator("hour"),
             new BeanComparator("minute")));
-        List<TemperatureItem> result = tempItemsByDayGrouped.get(now.getDayOfMonth());
+        List<TemperatureItem> result = tempItemsByDayGrouped.get(now.getDayOfMonth()) != null ?
+            tempItemsByDayGrouped.get(now.getDayOfMonth()) : new ArrayList<>();
         Collections.sort(result, chain);
         return result;
     }
