@@ -89,7 +89,7 @@ public class DynamoDbManager {
         }
     }
 
-    private List<BirdFeederItem> fetchItems() {
+    public List<BirdFeederItem> fetchItems() {
         List<BirdFeederItem> birdFeederItems = new ArrayList<>();
         ScanResult result = null;
         do {

@@ -59,8 +59,8 @@
                                           <TableView fx:id="itemsTable" prefHeight="333.0" prefWidth="1141.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                             <columns>
                                               <TableColumn fx:id="nameColumn" prefWidth="400.0" text="Name" />
-                                              <TableColumn fx:id="sizeColumn" prefWidth="75.0" text="Size" />
-                                                <TableColumn fx:id="statusColumn" editable="false" text="Status" />
+                                              <TableColumn fx:id="sizeColumn" prefWidth="161.0" text="Size" />
+                                                <TableColumn fx:id="statusColumn" editable="false" prefWidth="157.0" text="Status" />
                                             </columns>
                                           </TableView>
                                        </children>

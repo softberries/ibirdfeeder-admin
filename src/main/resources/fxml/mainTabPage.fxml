@@ -16,10 +16,11 @@
                     <content>
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                            <children>
-                              <TableView prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                              <TableView fx:id="dynamoTable" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                 <columns>
-                                  <TableColumn prefWidth="75.0" text="C1" />
-                                  <TableColumn prefWidth="75.0" text="C2" />
+                                  <TableColumn fx:id="timeColumn" prefWidth="285.00000607967377" text="Time" />
+                                  <TableColumn fx:id="topicColumn" minWidth="0.0" prefWidth="476.0" text="Topic" />
+                                    <TableColumn fx:id="payloadColumn" prefWidth="-1.0" text="Payload" />
                                 </columns>
                               </TableView>
                            </children>
