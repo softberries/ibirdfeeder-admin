@@ -134,8 +134,8 @@ public class MainTabPageController {
 
     private void initImageCreationStatChart() {
         List<ImageCreatedStat> stats = dynamoDbManager.getImageCreationStats();
+        barChart.setTitle("Number of Images Created per Month");
         XYChart.Series series1 = new XYChart.Series();
-        series1.setName("Number of Images Created per Month");
         for (ImageCreatedStat stat : stats) {
             series1.getData().add(new XYChart.Data(stat.getKey(), stat.getCount()));
         }
@@ -147,7 +147,7 @@ public class MainTabPageController {
         seriesDay.setName("Today");
         List<TemperatureItem> items = dynamoDbManager.getCurrentDayTemperatureItems();
         for (TemperatureItem item : items) {
-            seriesDay.getData().add(new XYChart.Data(Double.parseDouble(item.getHour() + "." + item.getMinute()), item.getTemperature()));
+            seriesDay.getData().add(new XYChart.Data(String.format("%02d", item.getHour()) + ":" + String.format("%02d", item.getMinute()), item.getTemperature()));
         }
         dayTemperatureChart.getData().add(seriesDay);
 
@@ -155,7 +155,7 @@ public class MainTabPageController {
         seriesMonth.setName("Current Month");
         List<TemperatureItem> itemsMonth = dynamoDbManager.getCurrentMonthTemperatureItems();
         for (TemperatureItem item : itemsMonth) {
-            seriesMonth.getData().add(new XYChart.Data(item.getDay(), item.getTemperature()));
+            seriesMonth.getData().add(new XYChart.Data(String.format("%02d", item.getDay()), item.getTemperature()));
         }
         monthTemperatureChart.getData().add(seriesMonth);
     }

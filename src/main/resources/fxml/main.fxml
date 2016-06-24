@@ -17,11 +17,11 @@
                 <fx:include fx:id="viewerTabPage" source="/fxml/viewerTabPage.fxml"/>
             </content>
         </Tab>
-        <Tab text="Temperature" onSelectionChanged="#onTemperatureTabSelectionChanged">
-            <content>
-                <fx:include fx:id="temperatureTabPage" source="/fxml/temperatureTabPage.fxml"/>
-            </content>
-        </Tab>
+        <!--<Tab text="Temperature" onSelectionChanged="#onTemperatureTabSelectionChanged">-->
+            <!--<content>-->
+                <!--<fx:include fx:id="temperatureTabPage" source="/fxml/temperatureTabPage.fxml"/>-->
+            <!--</content>-->
+        <!--</Tab>-->
         <Tab text="Album" onSelectionChanged="#onAlbumTabSelectionChanged">
             <content>
                 <fx:include fx:id="albumTabPage" source="/fxml/albumTabPage.fxml"/>

@@ -22,7 +22,7 @@ public class Main extends Application {
 
 
         primaryStage.setTitle("iBirdFeeder Administration Tool");
-        primaryStage.setScene(new Scene(root, 1024, 768));
+        primaryStage.setScene(new Scene(root, 1224, 868));
 
         primaryStage.show();
     }

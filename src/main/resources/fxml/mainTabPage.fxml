@@ -41,7 +41,7 @@
                                  <children>
                                     <AreaChart fx:id="dayTemperatureChart" title="Temperature Today" HBox.hgrow="ALWAYS">
                                       <xAxis>
-                                          <NumberAxis lowerBound="1" side="BOTTOM" tickUnit="1" upperBound="50" />
+                                          <CategoryAxis side="BOTTOM"/>
                                       </xAxis>
                                       <yAxis>
                                         <NumberAxis side="LEFT" />
@@ -49,7 +49,7 @@
                                     </AreaChart>
                                     <AreaChart fx:id="monthTemperatureChart" title="Avg. Temperature - Current Month" HBox.hgrow="ALWAYS">
                                       <xAxis>
-                                          <NumberAxis lowerBound="1" side="BOTTOM" tickUnit="1" upperBound="50" />
+                                          <CategoryAxis side="BOTTOM"/>
                                       </xAxis>
                                       <yAxis>
                                         <NumberAxis side="LEFT" />
