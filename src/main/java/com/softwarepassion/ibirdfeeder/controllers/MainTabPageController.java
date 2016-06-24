@@ -3,6 +3,7 @@ package com.softwarepassion.ibirdfeeder.controllers;
 
 import com.softwarepassion.ibirdfeeder.aws.dynamodb.BirdFeederItem;
 import com.softwarepassion.ibirdfeeder.aws.dynamodb.DynamoDbManager;
+import com.softwarepassion.ibirdfeeder.aws.dynamodb.ImageCreatedStat;
 import com.softwarepassion.ibirdfeeder.aws.dynamodb.TemperatureItem;
 import com.softwarepassion.ibirdfeeder.aws.s3.S3File;
 import com.softwarepassion.ibirdfeeder.aws.s3.S3Manager;
@@ -13,6 +14,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
+import javafx.scene.chart.BarChart;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
@@ -46,6 +48,8 @@ public class MainTabPageController {
     public TableColumn topicColumn;
     @FXML
     public TableColumn payloadColumn;
+    @FXML
+    public BarChart barChart;
 
 
     @FXML
@@ -82,13 +86,14 @@ public class MainTabPageController {
         payloadColumn.prefWidthProperty().bind(dynamoTable.widthProperty().divide(2)); // w * 1/4
         initTemperatureChart();
         initStorageSection();
+        initImageCreationStatChart();
         populateLastDynamoEventsTable();
     }
 
     private void populateLastDynamoEventsTable() {
         List<BirdFeederItem> items = dynamoDbManager.fetchItems();
         Collections.sort(items, (o1, o2) -> o2.getTimestamp().compareTo(o1.getTimestamp()));
-        for(int i=0; i<1000 || i<items.size();i++){
+        for (int i = 0; i < 1000 || i < items.size(); i++) {
             selectedItems.add(new BirdFeederTableItem(items.get(i)));
         }
         dynamoTable.setItems(selectedItems);
@@ -124,8 +129,17 @@ public class MainTabPageController {
                 new PieChart.Data("Unprocessed", temp),
                 new PieChart.Data("Album", album),
                 new PieChart.Data("Website", website));
-//        pieChart1.setTitle("S3 Storage");
         pieChart1.setData(pieChartData);
+    }
+
+    private void initImageCreationStatChart() {
+        List<ImageCreatedStat> stats = dynamoDbManager.getImageCreationStats();
+        XYChart.Series series1 = new XYChart.Series();
+        series1.setName("Number of Images Created per Month");
+        for (ImageCreatedStat stat : stats) {
+            series1.getData().add(new XYChart.Data(stat.getKey(), stat.getCount()));
+        }
+        barChart.getData().add(series1);
     }
 
     private void initTemperatureChart() {

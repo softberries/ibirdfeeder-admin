@@ -4,7 +4,6 @@ package com.softwarepassion.ibirdfeeder.aws.dynamodb;
 import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
@@ -29,14 +28,27 @@ public class DynamoDbManager {
     private static final String tableName = "birdfeeder";
 
     private AmazonDynamoDBClient dynamoDBClient;
-    private DynamoDB dynamoDB;
     private boolean refresh;
     private List<BirdFeederItem> birdFeederItems;
 
     public DynamoDbManager() {
         dynamoDBClient = new AmazonDynamoDBClient(new ClasspathPropertiesFileCredentialsProvider("AWSCredentials.properties"));
         dynamoDBClient.withRegion(Regions.EU_WEST_1);
-        dynamoDB = new DynamoDB(dynamoDBClient);
+    }
+
+    public List<ImageCreatedItem> getAllImageCreatedItems() {
+        refreshIfNeeded();
+        return birdFeederItems.stream().filter(bfi -> bfi.getTopic().equals(IMAGE_CREATED_TOPIC)).map(
+            bfi -> new ImageCreatedItem(Long.parseLong(bfi.getTimestamp()), bfi.getPayload().get("resource_created").getS())).collect(Collectors.toList());
+    }
+
+    public List<ImageCreatedStat> getImageCreationStats() {
+        List<ImageCreatedItem> allItems = getAllImageCreatedItems();
+        Map<String, List<ImageCreatedItem>> itemsGroupedByYearMonth =
+            allItems.stream().collect(Collectors.groupingBy(i -> i.getYear() + "-" + i.getMonth()));
+        List<String> keys = itemsGroupedByYearMonth.keySet().stream().collect(Collectors.toList());
+        Collections.sort(keys);
+        return keys.stream().map(k -> new ImageCreatedStat(itemsGroupedByYearMonth.get(k).size(), k)).collect(Collectors.toList());
     }
 
     public List<TemperatureItem> getAllTemperatureItems() {
